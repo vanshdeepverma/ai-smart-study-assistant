@@ -199,14 +199,15 @@ model Flashcard {
 }
 
 model FlashcardProgress {
-  id          String    @id @default(uuid())
+  id          String           @id @default(uuid())
   userId      String
   flashcardId String
-  easeFactor  Int       @default(250)
-  interval    Int       @default(0)
-  nextReview  DateTime  @default(now())
-  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  easeFactor  Int              @default(250)
+  interval    Int              @default(0)
+  nextReview  DateTime         @default(now())
+  rating      FlashcardRating?
+  flashcard   Flashcard        @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, flashcardId])
 }
@@ -317,6 +318,12 @@ enum QuizDifficulty {
   EASY
   MEDIUM
   HARD
+}
+
+enum FlashcardRating {
+  HARD
+  GOOD
+  EASY
 }
 
 enum DocumentStatus {
