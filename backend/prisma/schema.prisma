@@ -1,0 +1,354 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model User {
+  id                String              @id @default(uuid())
+  email             String              @unique
+  passwordHash      String
+  name              String
+  role              UserRole            @default(USER)
+  xp                Int                 @default(0)
+  level             Int                 @default(1)
+  currentStreak     Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  chatSessions      ChatSession[]
+  documents         Document[]
+  flashcardProgress FlashcardProgress[]
+  learningMemories  LearningMemory[]
+  learningProfile   LearningProfile?
+  quizAttempts      QuizAttempt[]
+  recommendations   Recommendation[]
+  studyPlans        StudyPlan[]
+  studySessions     StudySession[]
+  streaks           StudyStreak[]
+  subjects          Subject[]
+  topicPerformances TopicPerformance[]
+  achievements      UserAchievement[]
+  progress          UserProgress[]
+}
+
+model LearningProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  preferredStyle String   @default("ANALOGY")
+  academicGoal   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningMemory {
+  id         String         @id @default(uuid())
+  userId     String
+  topic      String
+  category   MemoryCategory
+  content    String
+  confidence Float          @default(0.8)
+  evidence   String?
+  isResolved Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  lastSeenAt DateTime       @default(now())
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, topic])
+}
+
+model Achievement {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  description      String
+  iconUrl          String?
+  xpReward         Int               @default(0)
+  createdAt        DateTime          @default(now())
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime    @default(now())
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}
+
+model UserProgress {
+  id           String   @id @default(uuid())
+  userId       String
+  date         DateTime @db.Date
+  studyMinutes Int      @default(0)
+  quizzesTaken Int      @default(0)
+  xpEarned     Int      @default(0)
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model StudyStreak {
+  id        String   @id @default(uuid())
+  userId    String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  length    Int
+  isActive  Boolean  @default(true)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topics      Topic[]
+}
+
+model Topic {
+  id             String             @id @default(uuid())
+  subjectId      String
+  name           String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  documents      Document[]
+  studyPlanTasks StudyPlanTask[]
+  subject        Subject            @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  performances   TopicPerformance[]
+}
+
+model TopicPerformance {
+  id              String   @id @default(uuid())
+  userId          String
+  topicId         String?
+  masteryLevel    Float    @default(0.0)
+  topicName       String
+  quizzesTaken    Int      @default(0)
+  totalQuestions  Int      @default(0)
+  correctAnswers  Int      @default(0)
+  evidenceSummary String?
+  lastAssessedAt  DateTime @default(now())
+  topic           Topic?   @relation(fields: [topicId], references: [id])
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicName])
+}
+
+model Recommendation {
+  id          String   @id @default(uuid())
+  userId      String
+  topicName   String
+  title       String
+  reason      String
+  actionType  String
+  targetId    String?
+  isDismissed Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDismissed])
+}
+
+model Document {
+  id              String          @id @default(uuid())
+  userId          String
+  topicId         String?
+  filename        String
+  fileUrl         String
+  status          DocumentStatus  @default(PROCESSING)
+  metadata        Json            @default("{}")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  focusedSessions ChatSession[]
+  topic           Topic?          @relation(fields: [topicId], references: [id])
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks          DocumentChunk[]
+  flashcards      Flashcard[]
+  quizzes         Quiz[]
+}
+
+model DocumentChunk {
+  id         String                 @id @default(uuid())
+  documentId String
+  content    String
+  pageNumber Int?
+  embedding  Unsupported("vector")?
+  document   Document               @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Flashcard {
+  id         String              @id @default(uuid())
+  documentId String
+  front      String
+  back       String
+  createdAt  DateTime            @default(now())
+  document   Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  progress   FlashcardProgress[]
+}
+
+model FlashcardProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  flashcardId String
+  easeFactor  Int       @default(250)
+  interval    Int       @default(0)
+  nextReview  DateTime  @default(now())
+  flashcard   Flashcard @relation(fields: [flashcardId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, flashcardId])
+}
+
+model Quiz {
+  id         String         @id @default(uuid())
+  documentId String
+  title      String
+  difficulty QuizDifficulty @default(MEDIUM)
+  createdAt  DateTime       @default(now())
+  questions  Question[]
+  document   Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  attempts   QuizAttempt[]
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  quizId        String
+  text          String
+  options       Json
+  correctAnswer String
+  answers       Answer[]
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model QuizAttempt {
+  id          String    @id @default(uuid())
+  userId      String
+  quizId      String
+  score       Int       @default(0)
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  answers     Answer[]
+  quiz        Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Answer {
+  id             String      @id @default(uuid())
+  attemptId      String
+  questionId     String
+  selectedOption String
+  isCorrect      Boolean
+  attempt        QuizAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model StudyPlan {
+  id         String          @id @default(uuid())
+  userId     String
+  title      String
+  targetDate DateTime
+  createdAt  DateTime        @default(now())
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks      StudyPlanTask[]
+}
+
+model StudyPlanTask {
+  id      String              @id @default(uuid())
+  planId  String
+  topicId String
+  title   String
+  status  StudyPlanTaskStatus @default(PENDING)
+  dueDate DateTime
+  plan    StudyPlan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+  topic   Topic               @relation(fields: [topicId], references: [id], onDelete: Cascade)
+}
+
+model StudySession {
+  id        String    @id @default(uuid())
+  userId    String
+  duration  Int
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChatSession {
+  id                String        @id @default(uuid())
+  userId            String
+  title             String        @default("New Chat")
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  focusedDocumentId String?
+  mentorMode        MentorMode    @default(EXPLAIN)
+  messages          ChatMessage[]
+  focusedDocument   Document?     @relation(fields: [focusedDocumentId], references: [id])
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid())
+  sessionId String
+  role      MessageRole
+  content   String
+  studyMode String?
+  citations Json        @default("[]")
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum QuizDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum DocumentStatus {
+  PROCESSING
+  READY
+  ERROR
+}
+
+enum StudyPlanTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MemoryCategory {
+  CONCEPT_CONFUSION
+  REPEATED_MISTAKE
+  LEARNING_STRENGTH
+  STUDY_PREFERENCE
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum MentorMode {
+  EXPLAIN
+  SOCRATIC
+  EXAM
+  VIVA
+  DOUBT
+  STUDY
+}

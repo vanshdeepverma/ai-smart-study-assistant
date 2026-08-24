@@ -1,0 +1,36 @@
+node_modules/
+dist/
+.env
+.DS_Store
+coverage/
+*.log
+cat >> .gitignore <<'EOF'
+
+# IDE / AI agent files
+.vscode/
+.idea/
+.agents/
+.claude/
+.windsurf/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary test files
+scratch/
+backend/e2e_final.js
+backend/fix_unused.js
+backend/test-quiz.js
+backend/test-login.js
+test-chat.js
+test-theme.js
+test_rag_strictness.js
+e2e-quiz-metadata-rejection.js
+
+# Local test data
+backend/dummy.pdf
+backend/dummy.txt
+computer_networks.pdf
+frontend/dummy.pdf
+EOF
