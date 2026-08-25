@@ -48,7 +48,7 @@ export class FlashcardService {
     }
 
     // 2. We will implement a retry loop (max 3 attempts) to generate valid flashcards.
-    let validFlashcards: Array<{front: string; back: string}> = [];
+    let validFlashcards: Array<{ front: string; back: string }> = [];
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       // Build prompt for Gemini structured JSON output
@@ -101,8 +101,8 @@ Return a JSON object containing:
       // 5. Automatic Validation against Metadata Questions
       const BAD_PATTERNS = [
         /how many pages/i, /total number of pages/i, /number of pages/i,
-        /document name/i, /file name/i, /filename/i, /file size/i, 
-        /upload date/i, /document id/i, /uuid/i, /processing status/i, 
+        /document name/i, /file name/i, /filename/i, /file size/i,
+        /upload date/i, /document id/i, /uuid/i, /processing status/i,
         /chunks/i, /chunk count/i, /document structure/i, /metadata/i
       ];
 
