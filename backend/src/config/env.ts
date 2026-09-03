@@ -48,7 +48,7 @@ export const config = {
     secret: process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'your-super-secret-jwt-key-change-in-production'),
   },
   cors: {
-    origin: process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5173'),
+    origin: process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? '' : true),
   },
   ai: {
     geminiKey: process.env.GEMINI_API_KEY,
