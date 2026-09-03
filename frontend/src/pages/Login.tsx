@@ -21,10 +21,13 @@ export function Login() {
     setIsLoading(true);
 
     try {
-      await apiFetch('/auth/login', {
+      const response = await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      if (response.data?.token) {
+        localStorage.setItem('auth_token', response.data.token);
+      }
       // Invalidate the current user cache so the app knows we logged in
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       navigate('/dashboard');

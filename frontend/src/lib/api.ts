@@ -7,6 +7,7 @@ export async function apiFetch(endpoint: string, options: RequestInit = {}) {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(typeof window !== 'undefined' && localStorage.getItem('auth_token') ? { 'Authorization': `Bearer ${localStorage.getItem('auth_token')}` } : {}),
       ...options.headers,
     },
     // Very important for HttpOnly cookies

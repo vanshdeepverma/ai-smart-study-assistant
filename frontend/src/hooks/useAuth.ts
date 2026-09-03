@@ -31,6 +31,8 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => apiFetch('/auth/logout', { method: 'POST' }),
     onSuccess: () => {
+      // Clear the token
+      localStorage.removeItem('auth_token');
       // Clear the user from cache, forcing a redirect in protected routes
       queryClient.setQueryData(['currentUser'], null);
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });

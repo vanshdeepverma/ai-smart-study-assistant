@@ -13,7 +13,7 @@ interface JwtPayload {
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.startsWith('Bearer ') ? req.headers.authorization.split(' ')[1] : null);
 
     if (!token) {
       return res.status(401).json(ApiResponse.error('Authentication required', 'UNAUTHORIZED'));

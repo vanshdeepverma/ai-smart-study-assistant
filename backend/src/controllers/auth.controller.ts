@@ -21,7 +21,7 @@ export class AuthController {
       res.cookie('token', token, COOKIE_OPTIONS);
 
       return res.status(201).json(
-        ApiResponse.success(user, 'User registered successfully')
+        ApiResponse.success({ ...user, token }, 'User registered successfully')
       );
     } catch (error: any) {
       if (error.message === 'Email is already registered') {
@@ -41,7 +41,7 @@ export class AuthController {
       res.cookie('token', token, COOKIE_OPTIONS);
 
       return res.status(200).json(
-        ApiResponse.success(user, 'Login successful')
+        ApiResponse.success({ ...user, token }, 'Login successful')
       );
     } catch (error: any) {
       if (error.message === 'Invalid email or password') {

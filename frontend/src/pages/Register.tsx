@@ -22,10 +22,13 @@ export function Register() {
     setIsLoading(true);
 
     try {
-      await apiFetch('/auth/register', {
+      const response = await apiFetch('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ name, email, password }),
       });
+      if (response.data?.token) {
+        localStorage.setItem('auth_token', response.data.token);
+      }
       // Invalidate current user cache
       queryClient.invalidateQueries({ queryKey: ['currentUser'] });
       navigate('/dashboard');
