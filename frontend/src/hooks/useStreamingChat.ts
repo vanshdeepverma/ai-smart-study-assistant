@@ -55,10 +55,12 @@ export function useStreamingChat(sessionId: string | undefined) {
     setError(null);
 
     try {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`${API_BASE_URL}/chat/sessions/${sessionId}/messages/stream`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         credentials: 'include',
         body: JSON.stringify({ content, studyMode })
